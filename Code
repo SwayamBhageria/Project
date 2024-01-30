@@ -1,0 +1,78 @@
+import numpy as np
+import pandas as pd
+import requests
+import json
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from sklearn.metrics import mean_squared_error
+!pip install qiskit_algorithms
+!pip install qiskit
+from qiskit import QuantumCircuit
+from qiskit.circuit.library import PauliFeatureMap
+from qiskit.algorithms.optimizers import ADAM
+from qiskit.circuit import Parameter
+from qiskit.primitives import Sampler
+
+
+
+api_url = "https://financialmodelingprep.com/api/v3/historical-price-full/AAPL?apikey=25f7fed4fd1ac271bb4f327ed4e69a63"
+response = requests.get(api_url)
+
+# Check if the request was successful (status code 200)
+if response.status_code == 200:
+    # Parse the response JSON
+    data = response.json()
+else:
+    print(f"Error: Unable to fetch data. Status code: {response.status_code}")
+
+df = pd.json_normalize(data, 'historical', ['symbol']) #convert into a datframe
+df.tail()
+
+
+
+
+final_data = df[['open', 'date']][0:500] #forming filtered dataframe
+input_sequences = []
+labels = []
+
+#Creating input and output data for time series forecasting
+for i in range(len(final_data['open'])):
+    if i > 1:
+        labels.append(final_data['open'][i])
+        input_sequences.append(final_data['open'][i-2:i+1].tolist())
+        
+#creating train test split
+x_train = np.array(input_sequences[0:400])
+x_test = np.array(input_sequences[400:])
+y_train = np.array(labels[0:400])
+y_test = np.array(labels[400:])
+
+
+
+
+import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+
+# Convert the 'date' column to datetime format
+df['date'] = pd.to_datetime(df['date'])
+
+# Plotting the time series data
+plt.figure(figsize=(10, 6))
+plt.plot(df['date'][0:500], df['open'][0:500], marker='o', linestyle='-')
+
+# Adding labels and title
+plt.xlabel('date')
+plt.ylabel('open')
+plt.title('Time Series Data')
+
+# Display the plot
+plt.grid(True)
+plt.show()
+
+
+
+
+
+
