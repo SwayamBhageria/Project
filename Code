@@ -9,6 +9,8 @@ from tensorflow.keras.layers import Dense
 from sklearn.metrics import mean_squared_error
 !pip install qiskit_algorithms
 !pip install qiskit
+!pip install qiskit-machine-learning
+from qiskit_machine_learning.algorithms import VQR
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import PauliFeatureMap
 from qiskit.algorithms.optimizers import ADAM
@@ -70,6 +72,33 @@ plt.title('Time Series Data')
 # Display the plot
 plt.grid(True)
 plt.show()
+
+
+
+num_features =  2
+feature_map = PauliFeatureMap(feature_dimension = num_features, reps = 2)
+optimizer = ADAM(maxiter = 100)
+
+
+
+def ans(n, depth):
+    qc = QuantumCircuit(n)
+    for j in range(depth):
+        for i in range(n):
+            param_name = f'theta_{j}_{i}'
+            theta_param = Parameter(param_name)
+            qc.rx(theta_param, i)
+            qc.ry(theta_param, i)
+            qc.rz(theta_param, i)
+    for i in range(n):
+        if i == n-1:
+            qc.cnot(i, 0)
+        else:
+            qc.cnot(i, i+1)
+    return qc
+
+
+
 
 
 
