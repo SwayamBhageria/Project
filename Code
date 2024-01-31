@@ -98,6 +98,41 @@ def ans(n, depth):
     return qc
 
 
+ansatz = ans(num_features, 5) #anstaz(num_qubits=num_features, reps=5)
+
+#creating train test split
+x_train = np.array(input_sequences[0:400])
+x_test = np.array(input_sequences[400:])
+y_train = np.array(labels[0:400])
+y_test = np.array(labels[400:])
+
+vqr = VQR(
+    feature_map = feature_map,
+    ansatz = ansatz,
+    optimizer = optimizer,
+)
+
+vqr.fit(x_train,y_train)
+vqr_mse = mean_squared_error(y_test, vqr.predict(x_test))
+
+# Calculate root mean squared error
+vqr_rmse = np.sqrt(vqr_mse)
+
+
+model = Sequential()
+model.add(Dense(64,activation = 'relu', input_shape = (4,)))
+model.add(Dense(1))
+
+model.compile(optimizer = 'adam', loss = 'mean_squared_error')
+
+model.fit(x_train, y_train, epochs = 20, batch_size = 32, validation_data = (x_test,y_test))
+
+loss = model.evaluate(x_test, y_test)
+prediction = model.predict(x_test)
+
+ann_mse = mean_squared_error(y_test, prediction.flatten())
+ann_rmse = np.sqrt(ann_mse)
+
 
 
 
